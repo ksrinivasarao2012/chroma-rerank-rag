@@ -1,6 +1,5 @@
 import logging
 from typing import List, Dict, Any
-from sentence_transformers import CrossEncoder
 
 logger = logging.getLogger(__name__)
 
@@ -13,6 +12,7 @@ class ReRanker:
     def encoder(self):
         if self._encoder is None:
             logger.info(f"Lazy-loading Cross-Encoder model: {self.model_name}")
+            from sentence_transformers import CrossEncoder
             self._encoder = CrossEncoder(self.model_name, max_length=512)
             logger.info("Cross-Encoder loaded successfully.")
         return self._encoder

@@ -4,7 +4,6 @@ import chromadb
 import logging
 from dotenv import load_dotenv
 from chromadb.api.types import EmbeddingFunction
-from langchain_community.embeddings import HuggingFaceEmbeddings
 from typing import List, Any, Dict
 
 load_dotenv()
