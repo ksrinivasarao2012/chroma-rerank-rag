@@ -71,9 +71,9 @@ if prompt := st.chat_input("Ask a question about your documents..."):
                             full_text += data
                             response_placeholder.markdown(full_text + "▌")
                 
-                # Append citations footer if present
+                # Append citations footer only if the LLM found relevant information
                 final_display = full_text
-                if citations:
+                if citations and "do not have enough information" not in full_text.lower():
                     final_display += "\n\n### Relevant Context\n"
                     for i, cite in enumerate(citations, 1):
                         final_display += f"**{i}. {cite['source_file']} (Page {cite['page_number']})**\n> {cite['text_snippet']}\n\n"
