@@ -1,3 +1,14 @@
+---
+title: Chroma Rerank RAG Backend
+emoji: ⚡
+colorFrom: blue
+colorTo: indigo
+sdk: gradio
+sdk_version: 4.44.0
+app_file: app.py
+pinned: false
+---
+
 # ⚡ chroma-rerank-rag
 
 > **A High-Precision Dual-Stage RAG Pipeline featuring Hybrid Retrieval (ChromaDB + BM25), Cross-Encoder Re-Ranking, Real-Time NDJSON Token Streaming, and Multi-Turn Conversational Memory.**
@@ -22,7 +33,7 @@
                     ▼                                           ▼
   ┌──────────────────────────────────┐        ┌──────────────────────────────────┐
   │   Dense Vector Store (ChromaDB)  │        │   Sparse Keyword Index (BM25)    │
-  │   Model: BAAI/bge-base-en-v1.5   │        │   Tokenizer: Alphanumeric        │
+  │   Model: BAAI/bge-small-en-v1.5  │        │   Tokenizer: Alphanumeric        │
   └─────────────────┬────────────────┘        └─────────────────┬────────────────┘
                     │ (Top 15 Dense)                            │ (Top 15 Sparse)
                     └─────────────────────┬─────────────────────┘
@@ -57,7 +68,7 @@
 ## ✨ Key Technical Features
 
 - **Dual-Stage Retrieval Architecture**:
-  - **Stage 1a (Dense Vector Search)**: Semantic retrieval powered by ChromaDB & HuggingFace `BAAI/bge-base-en-v1.5` embeddings.
+  - **Stage 1a (Dense Vector Search)**: Semantic retrieval powered by ChromaDB & HuggingFace `BAAI/bge-small-en-v1.5` embeddings.
   - **Stage 1b (Sparse Lexical Search)**: Keyword precision powered by `rank-bm25`.
   - **Stage 1c (Reciprocal Rank Fusion)**: Combines dense & sparse candidate rankings into a unified score list.
   - **Stage 2 (Cross-Encoder Re-Ranking)**: Re-scores top candidate chunks with `cross-encoder/ms-marco-MiniLM-L-6-v2` to maximize factual precision.
@@ -103,7 +114,7 @@ chroma-rerank-rag/
 
 * **Backend**: FastAPI, Uvicorn, Python 3.11
 * **Vector Database**: ChromaDB
-* **Embeddings**: HuggingFace (`BAAI/bge-base-en-v1.5`)
+* **Embeddings**: HuggingFace (`BAAI/bge-small-en-v1.5`)
 * **Keyword Search**: `rank-bm25` (BM25Okapi)
 * **Re-Ranker**: SentenceTransformers (`cross-encoder/ms-marco-MiniLM-L-6-v2`)
 * **LLM Engine**: Groq (`llama-3.1-8b-instant`) via LangChain
