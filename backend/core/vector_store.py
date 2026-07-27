@@ -14,42 +14,52 @@ logger = logging.getLogger(__name__)
 class VectorDBManager:
     def __init__(self, db_path: str = "./data/chroma_db", collection_name: str = "portfolio_rag_docs"):
         """
-        Initializes the local embedding model and the persistent ChromaDB connection.
+        Initializes persistent ChromaDB connection with lazy-loaded embeddings.
         """
         logger.info(f"Initializing VectorDBManager at path={db_path}, collection_name={collection_name}")
         os.makedirs(db_path, exist_ok=True)
+        self.db_path = db_path
+        self.collection_name = collection_name
+        
+        self.client = chromadb.PersistentClient(path=db_path)
+        logger.info("ChromaDB persistent client successfully created.")
+        
+        self._embedding = None
+        self._collection = None
 
-        try:
-            self.client = chromadb.PersistentClient(path=db_path)
-            logger.info("ChromaDB persistent client successfully created.")
-            
-            logger.info("Loading HuggingFaceEmbeddings model (BAAI/bge-small-en-v1.5)...")
-            self.embedding = HuggingFaceEmbeddings(
+    @property
+    def embedding(self):
+        if self._embedding is None:
+            logger.info("Lazy-loading HuggingFaceEmbeddings model (BAAI/bge-small-en-v1.5)...")
+            from langchain_community.embeddings import HuggingFaceEmbeddings
+            self._embedding = HuggingFaceEmbeddings(
                 model_name='BAAI/bge-small-en-v1.5',
                 model_kwargs={'device': 'cpu'}, 
                 encode_kwargs={'normalize_embeddings': True}
             )
             logger.info("Embedding model loaded successfully.")
-        except Exception as e:
-            logger.exception("Failed to initialize ChromaDB client or embedding model.")
-            raise e
+        return self._embedding
 
-        # Create a lightweight adapter so ChromaDB can use the LangChain embedder
-        class ChromaAdapter(EmbeddingFunction):
-            def __init__(self, embedder):
-                self.embedder = embedder
-                
-            def __call__(self, input: list[str]) -> list[list[float]]:
-                logger.debug(f"ChromaAdapter embedding {len(input)} texts...")
-                return self.embedder.embed_documents(input)
-                
-        chroma_embed_fn = ChromaAdapter(self.embedding)
-        
-        self.collection = self.client.get_or_create_collection(
-            name=collection_name,
-            embedding_function=chroma_embed_fn
-        )
-        logger.info(f"Connected to collection: {collection_name}")
+    @property
+    def collection(self):
+        if self._collection is None:
+            embed_model = self.embedding
+            class ChromaAdapter(EmbeddingFunction):
+                def __init__(self, embedder):
+                    self.embedder = embedder
+                    
+                def __call__(self, input: list[str]) -> list[list[float]]:
+                    logger.debug(f"ChromaAdapter embedding {len(input)} texts...")
+                    return self.embedder.embed_documents(input)
+                    
+            chroma_embed_fn = ChromaAdapter(embed_model)
+            
+            self._collection = self.client.get_or_create_collection(
+                name=self.collection_name,
+                embedding_function=chroma_embed_fn
+            )
+            logger.info(f"Connected to collection: {self.collection_name}")
+        return self._collection
 
     def delete_by_source(self, source_file: str) -> bool:
         """Deletes all existing vectors originating from a specific source file."""
@@ -132,7 +142,8 @@ class VectorDBManager:
     def get_all_chunks(self) -> List[Dict[str, Any]]:
         """Retrieves all stored chunks from ChromaDB for sparse BM25 indexing."""
         try:
-            results = self.collection.get(include=["documents", "metadatas"])
+            coll = self.client.get_or_create_collection(name=self.collection_name)
+            results = coll.get(include=["documents", "metadatas"])
             chunks = []
 
             if results and results.get("documents"):
