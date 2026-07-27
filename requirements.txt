@@ -1,6 +1,7 @@
 fastapi>=0.110.0
 uvicorn>=0.28.0
-gradio>=4.0.0
+gradio>=4.44.0
+huggingface-hub<0.25.0
 chromadb>=0.4.24
 sentence-transformers>=2.6.0
 rank-bm25>=0.2.2
