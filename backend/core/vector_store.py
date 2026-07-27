@@ -23,9 +23,9 @@ class VectorDBManager:
             self.client = chromadb.PersistentClient(path=db_path)
             logger.info("ChromaDB persistent client successfully created.")
             
-            logger.info("Loading HuggingFaceEmbeddings model (BAAI/bge-base-en-v1.5)...")
+            logger.info("Loading HuggingFaceEmbeddings model (BAAI/bge-small-en-v1.5)...")
             self.embedding = HuggingFaceEmbeddings(
-                model_name='BAAI/bge-base-en-v1.5',
+                model_name='BAAI/bge-small-en-v1.5',
                 model_kwargs={'device': 'cpu'}, 
                 encode_kwargs={'normalize_embeddings': True}
             )

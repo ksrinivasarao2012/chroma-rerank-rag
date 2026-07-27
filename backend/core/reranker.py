@@ -6,10 +6,16 @@ logger = logging.getLogger(__name__)
 
 class ReRanker:
     def __init__(self, model_name: str = "cross-encoder/ms-marco-MiniLM-L-6-v2"):
-        logger.info(f"Initializing Cross-Encoder model: {model_name}")
-        # max_length=512 ensures it covers our 500-character chunks
-        self.encoder = CrossEncoder(model_name, max_length=512)
-        logger.info("Cross-Encoder loaded successfully.")
+        self.model_name = model_name
+        self._encoder = None
+
+    @property
+    def encoder(self):
+        if self._encoder is None:
+            logger.info(f"Lazy-loading Cross-Encoder model: {self.model_name}")
+            self._encoder = CrossEncoder(self.model_name, max_length=512)
+            logger.info("Cross-Encoder loaded successfully.")
+        return self._encoder
     
     def rerank(self, query: str, chunks: List[Dict[str, Any]], top_k: int = 3) -> List[Dict[str, Any]]:
         """
